@@ -1,0 +1,13 @@
+FROM fedora:26
+LABEL maintainer="Ajay Tripathi <ajay39in@gmail.com>" \
+    description="General purpose sshable container with python3 installed"
+RUN dnf install -y openssh-server python \
+    && dnf clean all
+RUN mkdir /var/run/sshd \
+    && sed -i -r 's|^.?PermitRootLogin .*|PermitRootLogin yes|' /etc/ssh/sshd_config \
+    && sed -i -r 's|^.?GSSAPIAuthentication .*|GSSAPIAuthentication yes|' /etc/ssh/sshd_config \
+    && sed -i 's|session\s*required\s*pam_loginuid.so|session optional pam_loginuid.so|g' /etc/pam.d/sshd \
+    && /usr/bin/ssh-keygen -A
+RUN echo 'root:root' | chpasswd
+EXPOSE 80 443 22
+CMD ["/usr/sbin/sshd", "-D"]

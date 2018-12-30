@@ -1,0 +1,15 @@
+FROM centos:centos7
+LABEL maintainer="Ajay Tripathi <ajay39in@gmail.com>" \
+    description="General purpose sshable container with python3 installed"
+RUN yum install -y openssh-server \
+    yum install -y https://centos7.iuscommunity.org/ius-release.rpm \
+    && yum update -y \
+    && yum install -y python36u \ 
+    && yum clean all
+RUN ln -s /usr/bin/python3.6 /usr/bin/python3
+RUN ssh-keygen -q -N "" -t dsa -f /etc/ssh/ssh_host_dsa_key \
+    && ssh-keygen -q -N "" -t rsa -f /etc/ssh/ssh_host_rsa_key \
+    && sed -i 's|session\s*required\s*pam_loginuid.so|session optional pam_loginuid.so|g' /etc/pam.d/sshd
+RUN echo 'root:root' | chpasswd
+EXPOSE 80 443 22
+CMD ["/usr/sbin/sshd", "-D"]

@@ -1,0 +1,40 @@
+dist: xenial
+services: docker
+language: python
+
+env:
+  global:
+    python_path: /usr/bin/python3
+  matrix:
+    # ubuntu
+  - distro: ubuntu18
+  - distro: ubuntu16
+  - distro: ubuntu14
+    # debian
+  - distro: debian10
+  - distro: debian9
+  - distro: debian8
+    python_path: /usr/bin/python
+    # centos
+  - distro: centos7
+  - distro: centos6
+    python_path: /usr/bin/python
+    # fedora
+  - distro: fedora28
+  - distro: fedora27
+  - distro: fedora26
+    
+before_install:
+  - sudo apt update
+  - sudo apt install -y software-properties-common
+  - sudo apt-add-repository --yes --update ppa:ansible/ansible
+  - sudo apt install -y sshpass ansible
+
+install:
+  - docker pull atb00ker/sshable:$distro
+  - docker network create --driver bridge --subnet 192.168.56.33/27 --gateway 192.168.56.33 docker-bridge
+  - docker run -dit --net docker-bridge --ip=192.168.56.35 atb00ker/sshable:$distro
+
+script:
+  - ssh-keyscan -H 192.168.56.35 >> ~/.ssh/known_hosts
+  - ansible all -i '192.168.56.35,' -m ping -u root -e "ansible_python_interpreter=$python_path" --extra-vars "ansible_password=root" && exit $?
