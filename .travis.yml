@@ -38,3 +38,10 @@ install:
 script:
   - ssh-keyscan -H 192.168.56.35 >> ~/.ssh/known_hosts
   - ansible all -i '192.168.56.35,' -m ping -u root -e "ansible_python_interpreter=$python_path" --extra-vars "ansible_password=root" && exit $?
+
+notifications:
+  email:
+    recipients:
+      - ajay39in@gmail.com
+    on_success: never
+    on_failure: always
