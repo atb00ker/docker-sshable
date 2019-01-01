@@ -45,7 +45,9 @@ jobs:
       language: bash
       script:
         - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-        - bash $TRAVIS_BUILD_DIR/maintenance/docker-travis.sh
+        - bash $TRAVIS_BUILD_DIR/maintenance/docker-travis-build.sh
+        - docker image ls
+        - bash $TRAVIS_BUILD_DIR/maintenance/docker-travis-push.sh
 
 notifications:
   email:
