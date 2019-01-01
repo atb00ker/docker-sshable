@@ -23,21 +23,29 @@ env:
   - distro: fedora28
   - distro: fedora27
   - distro: fedora26
-    
+
 before_install:
   - sudo apt update
   - sudo apt install -y software-properties-common
+
+install:
   - sudo apt-add-repository --yes --update ppa:ansible/ansible
   - sudo apt install -y sshpass ansible
 
-install:
-  - docker pull atb00ker/sshable:$distro
-  - docker network create --driver bridge --subnet 192.168.56.33/27 --gateway 192.168.56.33 docker-bridge
-  - docker run -dit --net docker-bridge --ip=192.168.56.35 atb00ker/sshable:$distro
-
 script:
+  - docker network create --driver bridge --subnet 192.168.56.33/27 --gateway 192.168.56.33 docker-bridge
+  - docker pull atb00ker/sshable:$distro
+  - docker run -dit --net docker-bridge --ip=192.168.56.35 atb00ker/sshable:$distro
   - ssh-keyscan -H 192.168.56.35 >> ~/.ssh/known_hosts
   - ansible all -i '192.168.56.35,' -m ping -u root -e "ansible_python_interpreter=$python_path" --extra-vars "ansible_password=root" && exit $?
+
+jobs:
+  include:    
+    - stage: deploy
+      language: bash
+      script:
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        - bash $TRAVIS_BUILD_DIR/maintenance/docker-travis.sh
 
 notifications:
   email:
